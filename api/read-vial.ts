@@ -113,7 +113,23 @@ export async function POST(request: Request) {
   })
 
   if (!aiRes.ok) {
-    return json({ error: 'Could not read that label. Try a clearer photo.' }, 502)
+    let detail = ''
+    try {
+      const errBody = (await aiRes.json()) as { error?: { code?: string; message?: string } }
+      detail = `${errBody.error?.code || ''} ${errBody.error?.message || ''}`.toLowerCase()
+    } catch {
+      detail = ''
+    }
+    if (aiRes.status === 429 || detail.includes('quota') || detail.includes('credit')) {
+      return json(
+        {
+          error:
+            'Photo import has no OpenAI credits left. Add credits at platform.openai.com, then try the photo again.',
+        },
+        502,
+      )
+    }
+    return json({ error: 'Could not read that label. Try the photo again.' }, 502)
   }
 
   const aiJson = (await aiRes.json()) as {
