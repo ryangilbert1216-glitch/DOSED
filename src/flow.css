@@ -92,11 +92,12 @@ html.standalone .flow-auth-bg {
   transform: scale(1.08);
 }
 
-/* Narrow screens crop the sides — bias right so the jogger stays in frame */
+/* Narrow screens crop the sides hard. Shifting the video right (translateX)
+   keeps the jogger in the left/center of the source frame visible. */
 @media (max-width: 640px) {
   .flow-auth-video {
-    object-position: 78% center;
-    transform: scale(1.12);
+    object-position: left center;
+    transform: scale(1.2) translateX(18%);
   }
 }
 
