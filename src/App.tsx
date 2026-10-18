@@ -134,6 +134,7 @@ export default function App() {
     createProtocol,
     updateProtocol,
     deleteProtocol,
+    clearTrackerData,
     toggleVialInProtocol,
   } = useProtocolStore({ userId: auth.userId, cloud })
 
@@ -155,6 +156,7 @@ export default function App() {
     markRead,
     markAllRead,
     dismiss,
+    clearAll: clearNotifications,
   } = useNotificationStore({ userId: auth.userId, cloud })
 
   // Route based on auth session / guest
@@ -588,6 +590,11 @@ export default function App() {
                 onProfilePhotoChange={setProfilePhoto}
                 accountMode={cloud ? 'cloud' : 'guest'}
                 onSignOut={() => void handleSignOut()}
+                onClearTracker={async () => {
+                  setSelectedId(null)
+                  await clearTrackerData()
+                  clearNotifications()
+                }}
               />
             </div>
           )}

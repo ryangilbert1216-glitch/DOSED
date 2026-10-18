@@ -158,6 +158,12 @@ export function useNotificationStore(opts?: {
 
   const clearAll = useCallback(() => {
     setNotifications([])
+    try {
+      localStorage.removeItem(KEY)
+      localStorage.removeItem(DEDUPE_KEY)
+    } catch {
+      /* ignore */
+    }
   }, [])
 
   const unreadCount = useMemo(

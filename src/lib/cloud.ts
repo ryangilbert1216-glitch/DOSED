@@ -218,6 +218,23 @@ export async function deleteProtocolCloud(protocolId: string) {
   await supabase.from('protocols').delete().eq('id', protocolId)
 }
 
+/** Wipe vials, protocols, and dose history — keeps profile (name, photo, reminders). */
+export async function clearTrackerDataCloud(userId: string) {
+  if (!supabase) return
+  const results = await Promise.all([
+    supabase.from('dose_logs').delete().eq('user_id', userId),
+    supabase.from('protocols').delete().eq('user_id', userId),
+    supabase.from('peptides').delete().eq('user_id', userId),
+    supabase.from('notifications').delete().eq('user_id', userId),
+  ])
+  for (const res of results) {
+    if (res.error) {
+      console.error('clearTrackerData', res.error)
+      throw res.error
+    }
+  }
+}
+
 export async function insertLogCloud(userId: string, log: DoseLog) {
   if (!supabase) return
   const { error } = await supabase.from('dose_logs').insert({

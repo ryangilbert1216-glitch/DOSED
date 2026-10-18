@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { AppState, DoseLog, Peptide, Protocol } from '../types'
 import {
+  clearTrackerDataCloud,
   deleteLogCloud,
   deleteProtocolCloud,
   ensureProfile,
@@ -324,6 +325,19 @@ export function useProtocolStore(opts?: {
     [cloud],
   )
 
+  const clearTrackerData = useCallback(async () => {
+    const uid = userIdRef.current
+    setState((s) => ({
+      ...s,
+      peptides: [],
+      protocols: [],
+      logs: [],
+    }))
+    if (cloud && uid) {
+      await clearTrackerDataCloud(uid)
+    }
+  }, [cloud])
+
   const toggleVialInProtocol = useCallback(
     (protocolId: string, peptideId: string) => {
       setState((s) => {
@@ -365,6 +379,7 @@ export function useProtocolStore(opts?: {
     createProtocol,
     updateProtocol,
     deleteProtocol,
+    clearTrackerData,
     toggleVialInProtocol,
   }
 }

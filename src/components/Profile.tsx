@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { fileToProfileDataUrl } from '../lib/photo'
 
 interface ProfileProps {
@@ -15,6 +15,7 @@ interface ProfileProps {
   onOpenCalc?: () => void
   accountMode?: 'cloud' | 'guest'
   onSignOut?: () => void
+  onClearTracker?: () => void | Promise<void>
 }
 
 export function Profile({
@@ -31,8 +32,11 @@ export function Profile({
   onOpenCalc,
   accountMode = 'guest',
   onSignOut,
+  onClearTracker,
 }: ProfileProps) {
   const photoInputRef = useRef<HTMLInputElement>(null)
+  const [clearStep, setClearStep] = useState<'idle' | 'confirm' | 'working'>('idle')
+  const [clearError, setClearError] = useState<string | null>(null)
 
   return (
     <section className="panel profile-panel">
@@ -151,6 +155,72 @@ export function Profile({
         <button type="button" className="btn-secondary btn-wide" onClick={onOpenCalc}>
           Dose calculator
         </button>
+      )}
+
+      {onClearTracker && (
+        <div className="profile-danger-zone">
+          <p className="profile-section-label">Data</p>
+          {clearStep === 'idle' && (
+            <button
+              type="button"
+              className="btn-danger-ghost btn-wide"
+              onClick={() => {
+                setClearError(null)
+                setClearStep('confirm')
+              }}
+            >
+              Clear vials & protocols
+            </button>
+          )}
+          {clearStep === 'confirm' && (
+            <div className="profile-clear-confirm">
+              <p>
+                This permanently removes all vials, protocols, and dose history.
+                Your name, photo, and account stay.
+              </p>
+              {clearError && (
+                <p className="profile-clear-error" role="alert">
+                  {clearError}
+                </p>
+              )}
+              <div className="profile-clear-actions">
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  disabled={false}
+                  onClick={() => {
+                    setClearStep('idle')
+                    setClearError(null)
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn-danger-ghost"
+                  onClick={() => {
+                    setClearStep('working')
+                    setClearError(null)
+                    void (async () => {
+                      try {
+                        await onClearTracker()
+                        setClearStep('idle')
+                      } catch {
+                        setClearError('Couldn’t clear data. Try again.')
+                        setClearStep('confirm')
+                      }
+                    })()
+                  }}
+                >
+                  Yes, clear everything
+                </button>
+              </div>
+            </div>
+          )}
+          {clearStep === 'working' && (
+            <p className="muted profile-clear-working">Clearing vials & protocols…</p>
+          )}
+        </div>
       )}
 
       {onSignOut && (

@@ -380,6 +380,47 @@ html.standalone .app-shell {
   text-align: center;
 }
 
+.profile-danger-zone {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.profile-clear-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(196, 55, 26, 0.35);
+  background: rgba(196, 55, 26, 0.08);
+}
+
+.profile-clear-confirm p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.profile-clear-error {
+  color: var(--danger) !important;
+  font-weight: 600;
+}
+
+.profile-clear-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.profile-clear-working {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+}
+
 .theme-switch {
   display: grid;
   grid-template-columns: 1fr 1fr;
