@@ -14,6 +14,7 @@ interface VialDetailProps {
   isNew?: boolean
   onSave: (p: Peptide) => void
   onCancel: () => void
+  onDelete?: () => void
   onLog: () => void
 }
 
@@ -31,7 +32,14 @@ const SYRINGES: { value: SyringeSize; label: string }[] = [
   { value: 100, label: '100 units' },
 ]
 
-export function VialDetail({ peptide, isNew = false, onSave, onCancel, onLog }: VialDetailProps) {
+export function VialDetail({
+  peptide,
+  isNew = false,
+  onSave,
+  onCancel,
+  onDelete,
+  onLog,
+}: VialDetailProps) {
   const [draft, setDraft] = useState(peptide)
   const [sitesText, setSitesText] = useState(peptide.injectionSites.join(', '))
   const [loggedFlash, setLoggedFlash] = useState(false)
@@ -85,9 +93,29 @@ export function VialDetail({ peptide, isNew = false, onSave, onCancel, onLog }: 
           </svg>
         </button>
         <span className="detail-top-title">{isNew ? 'New vial' : 'Edit vial'}</span>
-        <button type="button" className="detail-save" onClick={save}>
-          Save
-        </button>
+        <div className="detail-top-actions">
+          {!isNew && onDelete && (
+            <button
+              type="button"
+              className="detail-trash"
+              onClick={onDelete}
+              aria-label="Delete vial"
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path
+                  d="M4 7h16M9 7V5h6v2M8 7l.8 12h6.4L16 7"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
+          <button type="button" className="detail-save" onClick={save}>
+            Save
+          </button>
+        </div>
       </div>
 
       <div className="detail-vial-hero">

@@ -573,6 +573,14 @@ export default function App() {
                     setUnsavedVialId(null)
                     setSelectedId(null)
                   }}
+                  onDelete={
+                    selected.id === unsavedVialId
+                      ? undefined
+                      : () => {
+                          deletePeptide(selected.id)
+                          setSelectedId(null)
+                        }
+                  }
                   onLog={() => handleLog()}
                 />
               )}

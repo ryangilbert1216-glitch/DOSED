@@ -445,7 +445,14 @@ export function Fridge({
                       <button
                         type="button"
                         className="fd-card-edit"
-                        onClick={() => setEditingId((cur) => (cur === p.id ? null : p.id))}
+                        onClick={() => {
+                          if (editingId === p.id) {
+                            setEditingId(null)
+                            return
+                          }
+                          setEditingId(p.id)
+                          onSelect(p.id)
+                        }}
                       >
                         {editingId === p.id ? 'Done' : 'Edit'}
                       </button>
@@ -474,7 +481,7 @@ export function Fridge({
                   )}
                   <button type="button" className="fd-card-main" onClick={() => onSelect(p.id)}>
                     <div className="fd-card-vial">
-                      <Vial name={p.name} doseAmount={p.vialMg} doseUnit="mg" size="md" />
+                      <Vial name={p.name} doseAmount={p.vialMg} doseUnit="mg" size="sm" />
                     </div>
                     <div className="fd-card-body">
                       <div className="fd-card-title-row">
