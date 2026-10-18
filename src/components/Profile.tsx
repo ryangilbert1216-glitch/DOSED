@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { fileToProfileDataUrl } from '../lib/photo'
+import { AvatarCropModal } from './AvatarCropModal'
+import { loadImageFromFile } from '../lib/photo'
 
 interface ProfileProps {
   remindersEnabled: boolean
@@ -37,6 +38,7 @@ export function Profile({
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [clearStep, setClearStep] = useState<'idle' | 'confirm' | 'working'>('idle')
   const [clearError, setClearError] = useState<string | null>(null)
+  const [cropImage, setCropImage] = useState<HTMLImageElement | null>(null)
 
   return (
     <section className="panel profile-panel">
@@ -73,7 +75,7 @@ export function Profile({
             e.target.value = ''
             if (!file) return
             try {
-              onProfilePhotoChange(await fileToProfileDataUrl(file))
+              setCropImage(await loadImageFromFile(file))
             } catch {
               /* ignore */
             }
@@ -187,7 +189,6 @@ export function Profile({
                 <button
                   type="button"
                   className="btn-ghost"
-                  disabled={false}
                   onClick={() => {
                     setClearStep('idle')
                     setClearError(null)
@@ -227,6 +228,17 @@ export function Profile({
         <button type="button" className="btn-ghost btn-wide profile-signout" onClick={onSignOut}>
           {accountMode === 'cloud' ? 'Sign out' : 'Leave guest session'}
         </button>
+      )}
+
+      {cropImage && (
+        <AvatarCropModal
+          image={cropImage}
+          onCancel={() => setCropImage(null)}
+          onApply={(dataUrl) => {
+            onProfilePhotoChange(dataUrl)
+            setCropImage(null)
+          }}
+        />
       )}
     </section>
   )

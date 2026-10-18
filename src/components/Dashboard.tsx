@@ -1,7 +1,8 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { DoseLog, Peptide } from '../types'
 import { drawUpSummary } from '../lib/calc'
-import { fileToProfileDataUrl } from '../lib/photo'
+import { loadImageFromFile } from '../lib/photo'
+import { AvatarCropModal } from './AvatarCropModal'
 import calendarDaysIcon from '../assets/calendar-days.png'
 import checkWeekIcon from '../assets/check-week.png'
 import fridgeStatIcon from '../assets/fridge-stat.png'
@@ -168,6 +169,7 @@ export function Dashboard({
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
+  const [cropImage, setCropImage] = useState<HTMLImageElement | null>(null)
   const weekRef = useRef<HTMLDivElement>(null)
   const dayBtnRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const [weekThumb, setWeekThumb] = useState({
@@ -379,8 +381,7 @@ export function Dashboard({
             e.target.value = ''
             if (!file) return
             try {
-              const dataUrl = await fileToProfileDataUrl(file)
-              onProfilePhotoChange(dataUrl)
+              setCropImage(await loadImageFromFile(file))
             } catch {
               /* ignore bad files */
             }
@@ -663,6 +664,17 @@ export function Dashboard({
           </ul>
         )}
       </section>
+
+      {cropImage && (
+        <AvatarCropModal
+          image={cropImage}
+          onCancel={() => setCropImage(null)}
+          onApply={(dataUrl) => {
+            onProfilePhotoChange(dataUrl)
+            setCropImage(null)
+          }}
+        />
+      )}
     </section>
   )
 }
