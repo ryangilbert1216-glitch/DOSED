@@ -34,7 +34,7 @@
   overflow: hidden;
   background: #050505;
   min-height: 100dvh;
-  min-height: 100svh;
+  min-height: calc(100dvh + env(safe-area-inset-bottom, 0px));
   width: 100%;
   box-sizing: border-box;
   padding-top: calc(2.75rem + env(safe-area-inset-top, 0px));
@@ -43,14 +43,41 @@
   padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
 }
 
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  .flow-root.has-auth-video {
+    min-height: 100vh;
+  }
+}
+
+html.standalone .flow-root.has-auth-video {
+  min-height: 100vh;
+}
+
 .flow-auth-bg {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
-  height: 100%;
+  /* Bleed past the iOS lying viewport so no black strip shows */
+  height: calc(100dvh + env(safe-area-inset-bottom, 0px) + 2px);
+  min-height: calc(100% + 2px);
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+}
+
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  .flow-auth-bg {
+    height: calc(100vh + 2px);
+    min-height: calc(100vh + 2px);
+  }
+}
+
+html.standalone .flow-auth-bg {
+  height: calc(100vh + 2px);
+  min-height: calc(100vh + 2px);
 }
 
 .flow-auth-video {

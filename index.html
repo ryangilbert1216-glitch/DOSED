@@ -15,6 +15,10 @@
       try {
         var theme = localStorage.getItem('dosed-theme')
         document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark'
+        // iOS Add-to-Home-Screen: mark standalone so CSS can use 100vh (dvh leaves a bottom gap)
+        if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
+          document.documentElement.classList.add('standalone')
+        }
       } catch (e) {}
     </script>
   </head>

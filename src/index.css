@@ -58,8 +58,25 @@ body,
   height: 100%;
   min-height: 100%;
   min-height: 100dvh;
-  min-height: 100svh;
   margin: 0;
+}
+
+/* iOS home-screen PWA: dvh/svh omit the bottom safe area and leave a gap.
+   Classic vh matches the full screen when installed (WebKit bug 254868). */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  html,
+  body,
+  #root {
+    height: 100vh;
+    min-height: 100vh;
+  }
+}
+
+html.standalone,
+html.standalone body,
+html.standalone #root {
+  height: 100vh;
+  min-height: 100vh;
 }
 
 body {
@@ -67,8 +84,13 @@ body {
   background: var(--bg);
   color: var(--ink);
   letter-spacing: var(--track-body);
-  /* Avoid iOS home-screen PWA letterboxing at the edges */
   overscroll-behavior: none;
+}
+
+html:has(.has-auth-video),
+html:has(.has-auth-video) body,
+html:has(.has-auth-video) #root {
+  background: #050505;
 }
 
 button,
