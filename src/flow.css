@@ -88,7 +88,16 @@ html.standalone .flow-auth-bg {
   object-fit: cover;
   object-position: center;
   display: block;
-  transform: scale(1.04);
+  /* Slight overscale so cover never shows letterbox edges when reframed */
+  transform: scale(1.08);
+}
+
+/* Narrow screens crop the sides — bias right so the jogger stays in frame */
+@media (max-width: 640px) {
+  .flow-auth-video {
+    object-position: 78% center;
+    transform: scale(1.12);
+  }
 }
 
 .flow-auth-fallback {
