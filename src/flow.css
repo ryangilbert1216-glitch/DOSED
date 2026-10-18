@@ -86,18 +86,16 @@ html.standalone .flow-auth-bg {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  /* Jogger sits ~left-third of the 16:9 source — keep him in the crop */
+  object-position: 28% center;
   display: block;
-  /* Slight overscale so cover never shows letterbox edges when reframed */
-  transform: scale(1.08);
+  transform: none;
 }
 
-/* Narrow screens crop the sides hard. Shifting the video right (translateX)
-   keeps the jogger in the left/center of the source frame visible. */
 @media (max-width: 640px) {
   .flow-auth-video {
-    object-position: left center;
-    transform: scale(1.2) translateX(18%);
+    /* Tighter phone crop: lock onto the jogger, cover fills so no black edges */
+    object-position: 22% center;
   }
 }
 
