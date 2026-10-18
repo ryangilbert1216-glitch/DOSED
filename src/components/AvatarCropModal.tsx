@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
+  type WheelEvent as ReactWheelEvent,
 } from 'react'
 import {
   DEFAULT_AVATAR_CROP,
@@ -15,8 +16,8 @@ import {
 } from '../lib/photo'
 
 const MIN_ZOOM = 1
-const MAX_ZOOM = 3
-const FALLBACK_VIEWPORT = 280
+const MAX_ZOOM = 4
+const FALLBACK_VIEWPORT = 320
 
 type Props = {
   image: HTMLImageElement
@@ -34,29 +35,46 @@ function clampPan(
   const maxX = Math.max(0, (imgW * s - viewport) / 2)
   const maxY = Math.max(0, (imgH * s - viewport) / 2)
   return {
-    ...crop,
+    zoom: Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, crop.zoom)),
     panX: Math.min(maxX, Math.max(-maxX, crop.panX)),
     panY: Math.min(maxY, Math.max(-maxY, crop.panY)),
   }
 }
 
+function distance(a: { x: number; y: number }, b: { x: number; y: number }) {
+  return Math.hypot(a.x - b.x, a.y - b.y)
+}
+
 export function AvatarCropModal({ image, onCancel, onApply }: Props) {
-  const circleRef = useRef<HTMLDivElement>(null)
+  const frameRef = useRef<HTMLDivElement>(null)
+  const cropRef = useRef<AvatarCrop>(DEFAULT_AVATAR_CROP)
   const [viewport, setViewport] = useState(FALLBACK_VIEWPORT)
   const [crop, setCrop] = useState<AvatarCrop>(DEFAULT_AVATAR_CROP)
-  const dragRef = useRef<{
-    startX: number
-    startY: number
-    panX: number
-    panY: number
+  const pointers = useRef(
+    new Map<number, { x: number; y: number }>(),
+  )
+  const gesture = useRef<{
+    mode: 'pan' | 'pinch'
+    startCrop: AvatarCrop
+    originA?: { x: number; y: number }
+    originB?: { x: number; y: number }
+    startDist?: number
   } | null>(null)
-  const [dragging, setDragging] = useState(false)
+
+  const commitCrop = useCallback(
+    (next: AvatarCrop) => {
+      const clamped = clampPan(next, image.width, image.height, viewport)
+      cropRef.current = clamped
+      setCrop(clamped)
+    },
+    [image.width, image.height, viewport],
+  )
 
   useLayoutEffect(() => {
-    const el = circleRef.current
+    const el = frameRef.current
     if (!el) return
     const measure = () => {
-      const size = el.getBoundingClientRect().width
+      const size = Math.min(el.clientWidth, el.clientHeight)
       if (size > 0) setViewport(size)
     }
     measure()
@@ -64,6 +82,23 @@ export function AvatarCropModal({ image, onCancel, onApply }: Props) {
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
+
+  useEffect(() => {
+    commitCrop(cropRef.current)
+  }, [viewport, commitCrop])
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCancel()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [onCancel])
 
   const imgStyle = useMemo(() => {
     const s = coverScale(image.width, image.height, viewport) * crop.zoom
@@ -74,121 +109,134 @@ export function AvatarCropModal({ image, onCancel, onApply }: Props) {
     }
   }, [image, crop, viewport])
 
-  const setCropClamped = useCallback(
-    (next: AvatarCrop) => {
-      setCrop(clampPan(next, image.width, image.height, viewport))
-    },
-    [image.width, image.height, viewport],
-  )
-
-  useEffect(() => {
-    setCrop((c) => clampPan(c, image.width, image.height, viewport))
-  }, [viewport, image.width, image.height])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onCancel])
-
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId)
-    dragRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      panX: crop.panX,
-      panY: crop.panY,
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    const pts = [...pointers.current.values()]
+    if (pts.length >= 2) {
+      gesture.current = {
+        mode: 'pinch',
+        startCrop: { ...cropRef.current },
+        originA: pts[0],
+        originB: pts[1],
+        startDist: distance(pts[0], pts[1]),
+      }
+    } else {
+      gesture.current = {
+        mode: 'pan',
+        startCrop: { ...cropRef.current },
+        originA: pts[0],
+      }
     }
-    setDragging(true)
   }
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current
-    if (!drag) return
-    setCropClamped({
-      ...crop,
-      panX: drag.panX + (e.clientX - drag.startX),
-      panY: drag.panY + (e.clientY - drag.startY),
+    if (!pointers.current.has(e.pointerId)) return
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    const g = gesture.current
+    if (!g) return
+    const pts = [...pointers.current.values()]
+
+    if (pts.length >= 2) {
+      const dist = distance(pts[0], pts[1])
+      if (g.mode !== 'pinch' || !g.startDist) {
+        gesture.current = {
+          mode: 'pinch',
+          startCrop: { ...cropRef.current },
+          originA: pts[0],
+          originB: pts[1],
+          startDist: dist,
+        }
+        return
+      }
+      const zoom = g.startCrop.zoom * (dist / g.startDist)
+      commitCrop({ ...g.startCrop, zoom })
+      return
+    }
+
+    if (g.mode === 'pan' && g.originA && pts[0]) {
+      commitCrop({
+        ...g.startCrop,
+        panX: g.startCrop.panX + (pts[0].x - g.originA.x),
+        panY: g.startCrop.panY + (pts[0].y - g.originA.y),
+      })
+    }
+  }
+
+  const endPointer = (e: ReactPointerEvent<HTMLDivElement>) => {
+    pointers.current.delete(e.pointerId)
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {
+      /* already released */
+    }
+    const pts = [...pointers.current.values()]
+    if (pts.length === 1) {
+      gesture.current = {
+        mode: 'pan',
+        startCrop: { ...cropRef.current },
+        originA: pts[0],
+      }
+    } else if (pts.length === 0) {
+      gesture.current = null
+    }
+  }
+
+  const onWheel = (e: ReactWheelEvent) => {
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? -0.08 : 0.08
+    commitCrop({
+      ...cropRef.current,
+      zoom: cropRef.current.zoom + delta,
     })
   }
 
-  const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (dragRef.current) {
-      try {
-        e.currentTarget.releasePointerCapture(e.pointerId)
-      } catch {
-        /* already released */
-      }
-    }
-    dragRef.current = null
-    setDragging(false)
-  }
-
   return (
-    <div className="avatar-crop" role="dialog" aria-modal="true" aria-label="Crop profile photo">
-      <button type="button" className="avatar-crop-backdrop" aria-label="Cancel" onClick={onCancel} />
-      <div className="avatar-crop-panel">
-        <header className="avatar-crop-head">
-          <h2>Adjust photo</h2>
-          <p>Drag to reposition · use zoom to frame inside the circle</p>
-        </header>
-
-        <div
-          className={`avatar-crop-stage${dragging ? ' is-dragging' : ''}`}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={endDrag}
-          onPointerCancel={endDrag}
-        >
-          <div ref={circleRef} className="avatar-crop-circle">
-            <img
-              src={image.src}
-              alt=""
-              draggable={false}
-              className="avatar-crop-img"
-              style={imgStyle}
-            />
-          </div>
-        </div>
-
-        <label className="avatar-crop-zoom">
-          <span>Zoom</span>
-          <input
-            type="range"
-            min={MIN_ZOOM}
-            max={MAX_ZOOM}
-            step={0.01}
-            value={crop.zoom}
-            onChange={(e) =>
-              setCropClamped({
-                ...crop,
-                zoom: Number(e.target.value),
-              })
+    <div className="ig-crop" role="dialog" aria-modal="true" aria-label="Crop profile photo">
+      <header className="ig-crop-bar">
+        <button type="button" className="ig-crop-bar-btn" onClick={onCancel}>
+          Cancel
+        </button>
+        <span className="ig-crop-bar-title">Move and scale</span>
+        <button
+          type="button"
+          className="ig-crop-bar-btn ig-crop-bar-done"
+          onClick={() => {
+            try {
+              onApply(cropAvatarToDataUrl(image, cropRef.current, viewport, 512))
+            } catch {
+              onCancel()
             }
-          />
-        </label>
+          }}
+        >
+          Done
+        </button>
+      </header>
 
-        <div className="avatar-crop-actions">
-          <button type="button" className="btn-ghost" onClick={onCancel}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => {
-              try {
-                onApply(cropAvatarToDataUrl(image, crop, viewport, 512))
-              } catch {
-                onCancel()
-              }
-            }}
-          >
-            Apply
-          </button>
+      <div
+        className="ig-crop-stage"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endPointer}
+        onPointerCancel={endPointer}
+        onWheel={onWheel}
+      >
+        <div ref={frameRef} className="ig-crop-frame">
+          <img
+            src={image.src}
+            alt=""
+            draggable={false}
+            className="ig-crop-img"
+            style={imgStyle}
+          />
+          <div className="ig-crop-veil" aria-hidden>
+            <div className="ig-crop-hole" />
+          </div>
+          <div className="ig-crop-ring" aria-hidden />
         </div>
       </div>
+
+      <p className="ig-crop-hint">Pinch to zoom · drag to move</p>
     </div>
   )
 }
