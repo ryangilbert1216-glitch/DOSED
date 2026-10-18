@@ -9,16 +9,16 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.png",
-      "sizes": "192x192",
+      "src": "/icon-256.png",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-256.png",
-      "sizes": "256x256",
+      "src": "/apple-touch-icon.png",
+      "sizes": "1024x1024",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ]
 }
