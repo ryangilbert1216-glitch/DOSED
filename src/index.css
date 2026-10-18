@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:ital,wght@1,700&display=swap');
+
+:root {
+  --bg: #ffffff;
+  --surface: #f4f4f4;
+  --card: #ffffff;
+  --ink: #0e0e0e;
+  --ink-soft: #5c5c5c;
+  --line: rgba(14, 14, 14, 0.1);
+  --accent: #fe1700;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(254, 23, 0, 0.12);
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-strong: #ffffff;
+  --danger: #c4371a;
+  --radius: 18px;
+  --font-display: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  /* Inter tracking tiers */
+  --track-title: -0.75%;
+  --track-body: 0%;
+  --track-caption: 1%;
+  --track-caps: 1.5%;
+  --teal: var(--accent);
+  --teal-deep: var(--accent);
+  color-scheme: light;
+  font-family: var(--font-body);
+  letter-spacing: var(--track-body);
+  color: var(--ink);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0e0e0e;
+  --surface: #1a1a1a;
+  --card: #171717;
+  --ink: #ffffff;
+  --ink-soft: #a3a3a3;
+  --line: rgba(255, 255, 255, 0.1);
+  --accent-soft: rgba(254, 23, 0, 0.16);
+  --glass: rgba(14, 14, 14, 0.72);
+  --glass-strong: #171717;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  min-width: 320px;
+  background: var(--bg);
+  color: var(--ink);
+  letter-spacing: var(--track-body);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  letter-spacing: var(--track-body);
+}
+
+button {
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+.font-title {
+  font-family: var(--font-display);
+  letter-spacing: var(--track-title);
+}
+
+.font-caption,
+small,
+.muted {
+  letter-spacing: var(--track-caption);
+}
+
+.font-caps {
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+}
+
+#root {
+  isolation: isolate;
+}

@@ -1,0 +1,468 @@
+.flow-root {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem 1.25rem 2.5rem;
+  background: var(--bg);
+}
+
+.flow-screen {
+  width: min(100%, 420px);
+  min-height: min(720px, calc(100dvh - 3rem));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 1.5rem;
+}
+
+.flow-root:has(.flow-splash),
+.flow-root:has(.flow-auth) {
+  background: #0e0e0e;
+  color: #ffffff;
+  --ink: #ffffff;
+  --ink-soft: #a3a3a3;
+  --surface: rgba(26, 26, 26, 0.72);
+  --accent-ink: #ffffff;
+}
+
+.flow-root.has-auth-video {
+  position: relative;
+  overflow: visible;
+  background: #050505;
+  place-items: start center;
+  align-content: start;
+  padding-top: 2rem;
+  padding-bottom: 2.75rem;
+}
+
+.flow-auth-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.flow-auth-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transform: scale(1.04);
+}
+
+.flow-auth-fallback {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 0%, rgba(254, 23, 0, 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(254, 23, 0, 0.08), transparent 50%),
+    linear-gradient(180deg, #141414 0%, #050505 100%);
+}
+
+.flow-auth-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.flow-auth-alt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.flow-guest {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 500;
+  padding: 0.25rem 0;
+  letter-spacing: var(--track-caption);
+  transition: color 160ms ease;
+}
+
+.flow-guest:hover {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.flow-auth-error {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(196, 55, 26, 0.18);
+  border: 1px solid rgba(196, 55, 26, 0.45);
+  color: #ffb4a2;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.flow-auth-banner {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.flow-loading {
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  background: #0e0e0e;
+  color: #fff;
+}
+
+.flow-loading-copy {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.88rem;
+}
+
+.flow-splash {
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.flow-splash-logo {
+  width: min(13.5rem, 62vw);
+  height: auto;
+  max-height: 2.75rem;
+  object-fit: contain;
+  display: block;
+  animation: splashIn 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes splashIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.flow-logo {
+  width: 8.5rem;
+  height: auto;
+  max-height: 1.85rem;
+  object-fit: contain;
+  align-self: flex-start;
+  display: block;
+}
+
+.flow-logo-sm {
+  width: 6.75rem;
+  max-height: 1.5rem;
+}
+
+.flow-auth .flow-form input {
+  background: rgba(18, 18, 18, 0.78);
+  color: #ffffff;
+  backdrop-filter: blur(10px);
+}
+
+.flow-auth .flow-switch {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.flow-screen.flow-auth {
+  position: relative;
+  z-index: 1;
+  justify-content: flex-start;
+  min-height: min(640px, calc(100dvh - 5.5rem));
+  padding-bottom: 0.5rem;
+  gap: 1.25rem;
+}
+
+.flow-auth-head {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.flow-auth-head h1,
+.flow-onboard-body h1 {
+  margin: 1rem 0 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.85rem, 5.2vw, 2.2rem);
+  letter-spacing: var(--track-title);
+  line-height: 1.4;
+  overflow: visible;
+  padding: 0.1rem 0 0.35rem;
+}
+
+.flow-auth-head p,
+.flow-lead {
+  margin: 0.75rem 0 0;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1.45;
+  letter-spacing: var(--track-body);
+}
+
+.flow-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.flow-btn {
+  width: 100%;
+  min-height: 3rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+}
+
+.flow-switch {
+  align-self: flex-start;
+  flex-shrink: 0;
+  padding: 0.35rem 0;
+  line-height: 1.3;
+}
+
+.flow-auth,
+.flow-onboard {
+  justify-content: flex-start;
+  padding-top: 0.25rem;
+}
+
+.flow-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: auto;
+}
+
+.flow-form label,
+.flow-onboard-body .flow-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: var(--track-caption);
+  color: var(--ink-soft);
+}
+
+.flow-form input {
+  border: none;
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 14px;
+  min-height: 3rem;
+  padding: 0.75rem 0.9rem;
+  font-size: 1rem;
+  font-weight: 500;
+  outline: none;
+}
+
+.flow-form input:focus {
+  box-shadow: 0 0 0 1.5px var(--accent);
+}
+
+.flow-onboard-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flow-dots {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.flow-dots button {
+  width: 1.35rem;
+  height: 0.35rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--line);
+  padding: 0;
+  transition:
+    width 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 200ms ease;
+}
+
+.flow-dots button.is-done {
+  background: rgba(254, 23, 0, 0.45);
+}
+
+.flow-dots button.is-on {
+  width: 2rem;
+  background: var(--accent);
+}
+
+.flow-kicker {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+}
+
+.flow-onboard-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.flow-step-in {
+  animation: splashIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.flow-points {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.flow-points li {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.flow-points strong {
+  font-size: 0.95rem;
+}
+
+.flow-points span {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.flow-toggle {
+  margin-top: 0.4rem;
+  width: 100%;
+  border: none;
+  background: var(--surface);
+  border-radius: 18px;
+  min-height: 4.2rem;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 650;
+}
+
+.flow-toggle i {
+  width: 2.7rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  background: #3a3a3a;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.flow-toggle i::after {
+  content: '';
+  position: absolute;
+  top: 0.16rem;
+  left: 0.16rem;
+  width: 1.22rem;
+  height: 1.22rem;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 180ms ease;
+}
+
+.flow-toggle.is-on i {
+  background: var(--accent);
+}
+
+.flow-toggle.is-on i::after {
+  transform: translateX(1.12rem);
+}
+
+.flow-onboard .flow-actions {
+  margin-top: auto;
+}
+
+.dev-menu {
+  position: fixed;
+  z-index: 50;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.dev-menu-toggle {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 0.32rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+}
+
+.dev-menu-panel {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  width: 15.5rem;
+  max-height: min(70vh, 32rem);
+  overflow: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0.45rem;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.dev-menu-kicker {
+  margin: 0.45rem 0.55rem 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.dev-menu-panel button {
+  border: none;
+  background: transparent;
+  text-align: left;
+  border-radius: 10px;
+  padding: 0.48rem 0.6rem;
+  color: var(--ink);
+  font-size: 0.84rem;
+}
+
+.dev-menu-panel button:hover {
+  background: var(--surface);
+}
+
+.dev-menu-panel button.is-current {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+}
