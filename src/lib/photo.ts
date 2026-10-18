@@ -72,28 +72,6 @@ export function cropAvatarToDataUrl(
   return canvas.toDataURL('image/jpeg', 0.86)
 }
 
-/** Shrink a photo to a JPEG data URL before upload */
-export function fileToJpegDataUrl(file: File, maxEdge = 1280, quality = 0.82): Promise<string> {
-  return loadImageFromFile(file).then(
-    (img) =>
-      new Promise((resolve, reject) => {
-        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height))
-        const width = Math.max(1, Math.round(img.width * scale))
-        const height = Math.max(1, Math.round(img.height * scale))
-        const canvas = document.createElement('canvas')
-        canvas.width = width
-        canvas.height = height
-        const ctx = canvas.getContext('2d')
-        if (!ctx) {
-          reject(new Error('Could not read image'))
-          return
-        }
-        ctx.drawImage(img, 0, 0, width, height)
-        resolve(canvas.toDataURL('image/jpeg', quality))
-      }),
-  )
-}
-
 /** Legacy helper: center-crop without interactive framing */
 export async function fileToProfileDataUrl(file: File, size = 512): Promise<string> {
   const img = await loadImageFromFile(file)

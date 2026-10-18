@@ -14,15 +14,12 @@ import { useAuth } from './hooks/useAuth'
 import { useProtocolStore } from './hooks/useProtocolStore'
 import { useReminders } from './hooks/useReminders'
 import { BrandMark } from './components/BrandMark'
-import { AddVialSheet } from './components/AddVialSheet'
 import { AuthScreen } from './components/flow/AuthScreen'
 import { DevMenu, type AppTab } from './components/flow/DevMenu'
 import { OnboardingScreen } from './components/flow/OnboardingScreen'
 import { SplashScreen } from './components/flow/SplashScreen'
 import { type FlowScreen } from './components/flow/screens'
 import { ensureProfile, getProfileOnboarded } from './lib/cloud'
-import { fileToJpegDataUrl } from './lib/photo'
-import { readVialLabel } from './lib/readVial'
 import './App.css'
 import './flow.css'
 
@@ -150,10 +147,6 @@ export default function App() {
   const [mainKey, setMainKey] = useState(0)
   const [notifOpen, setNotifOpen] = useState(false)
   const [unsavedVialId, setUnsavedVialId] = useState<string | null>(null)
-  const [addOpen, setAddOpen] = useState(false)
-  const [photoBusy, setPhotoBusy] = useState(false)
-  const [photoError, setPhotoError] = useState<string | null>(null)
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [authBusy, setAuthBusy] = useState(false)
   const [flowReady, setFlowReady] = useState(false)
 
@@ -317,64 +310,13 @@ export default function App() {
     [livePeptides, selectedId],
   )
 
-  const openBlankVial = (patch?: {
-    name?: string
-    vialMg?: number
-    doseAmount?: number
-    doseUnit?: 'mcg' | 'mg' | 'iu'
-    notes?: string
-  }) => {
+  const handleAdd = () => {
     if (unsavedVialId) deletePeptide(unsavedVialId)
-    const blank = { ...createBlankLive(), ...patch }
+    const blank = createBlankLive()
     upsertPeptide(blank)
     setUnsavedVialId(blank.id)
     setSelectedId(blank.id)
     setTab('fridge')
-  }
-
-  const handleAdd = () => {
-    setPhotoError(null)
-    setPhotoPreview(null)
-    setAddOpen(true)
-  }
-
-  const handleManualAdd = () => {
-    setAddOpen(false)
-    openBlankVial()
-  }
-
-  const handlePhotoAdd = async (file: File) => {
-    const token = auth.session?.access_token
-    if (!token) {
-      setPhotoError('Sign in to import a photo.')
-      return
-    }
-    setPhotoBusy(true)
-    setPhotoError(null)
-    try {
-      const image = await fileToJpegDataUrl(file)
-      setPhotoPreview(image)
-      const label = await readVialLabel(image, token)
-      const notes = [
-        label.notes,
-        label.doseAmount == null ? 'Confirm the dose — it was not printed on the label.' : '',
-      ]
-        .filter(Boolean)
-        .join(' ')
-      setAddOpen(false)
-      setPhotoPreview(null)
-      openBlankVial({
-        name: label.name,
-        ...(label.vialMg != null ? { vialMg: label.vialMg } : {}),
-        ...(label.doseAmount != null ? { doseAmount: label.doseAmount } : {}),
-        ...(label.doseUnit ? { doseUnit: label.doseUnit } : {}),
-        notes,
-      })
-    } catch (err) {
-      setPhotoError(err instanceof Error ? err.message : 'Could not read that photo.')
-    } finally {
-      setPhotoBusy(false)
-    }
   }
 
   const handleCreateVial = (name: string) => {
@@ -715,21 +657,6 @@ export default function App() {
           </button>
         ))}
       </nav>
-      <AddVialSheet
-        open={addOpen}
-        busy={photoBusy}
-        error={photoError}
-        preview={photoPreview}
-        canPhoto={Boolean(auth.session?.access_token)}
-        onClose={() => {
-          if (photoBusy) return
-          setAddOpen(false)
-          setPhotoPreview(null)
-          setPhotoError(null)
-        }}
-        onManual={handleManualAdd}
-        onPhoto={(file) => void handlePhotoAdd(file)}
-      />
       <NotificationCenter
         open={notifOpen}
         notifications={notifications}
