@@ -382,6 +382,15 @@ export default function App() {
         {isAuth && (
           <div className="flow-auth-bg" aria-hidden>
             <div className="flow-auth-fallback" />
+            <video
+              className="flow-auth-video"
+              src="/auth-bg.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+            />
             <div className="flow-auth-overlay" />
           </div>
         )}
