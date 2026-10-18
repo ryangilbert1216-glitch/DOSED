@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { DoseUnit, Frequency, Peptide, SyringeSize } from '../types'
 import {
   concentrationMcgPerMl,
@@ -11,10 +11,10 @@ import { Vial } from './Vial'
 
 interface VialDetailProps {
   peptide: Peptide
-  onChange: (p: Peptide) => void
+  isNew?: boolean
+  onSave: (p: Peptide) => void
+  onCancel: () => void
   onLog: () => void
-  onArchive: () => void
-  onClose: () => void
 }
 
 const FREQ: { value: Frequency; label: string }[] = [
@@ -31,19 +31,38 @@ const SYRINGES: { value: SyringeSize; label: string }[] = [
   { value: 100, label: '100 units' },
 ]
 
-export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: VialDetailProps) {
+export function VialDetail({ peptide, isNew = false, onSave, onCancel, onLog }: VialDetailProps) {
+  const [draft, setDraft] = useState(peptide)
+  const [sitesText, setSitesText] = useState(peptide.injectionSites.join(', '))
   const [loggedFlash, setLoggedFlash] = useState(false)
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    setDraft(peptide)
+    setSitesText(peptide.injectionSites.join(', '))
+  }, [peptide.id]) // reset only when a different vial opens
+
   const units = unitsForDose(
-    peptide.vialMg,
-    peptide.diluentMl,
-    peptide.doseAmount,
-    peptide.doseUnit,
+    draft.vialMg,
+    draft.diluentMl,
+    draft.doseAmount,
+    draft.doseUnit,
   )
-  const conc = concentrationMcgPerMl(peptide.vialMg, peptide.diluentMl)
+  const conc = concentrationMcgPerMl(draft.vialMg, draft.diluentMl)
 
   const set = <K extends keyof Peptide>(key: K, value: Peptide[K]) =>
-    onChange({ ...peptide, [key]: value })
+    setDraft((current) => ({ ...current, [key]: value }))
+
+  const save = () => {
+    const sites = sitesText
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    onSave({
+      ...draft,
+      injectionSites: sites.length > 0 ? sites : ['Abdomen'],
+    })
+  }
 
   const handleLog = () => {
     onLog()
@@ -53,20 +72,28 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
   }
 
   return (
-    <aside className="detail-panel" aria-label={`${peptide.name || 'Vial'} details`}>
+    <aside className="detail-panel" aria-label={`${draft.name || 'Vial'} details`}>
       <div className="detail-top">
-        <button type="button" className="btn-ghost" onClick={onClose}>
-          ← Back
+        <button
+          type="button"
+          className="detail-close"
+          onClick={onCancel}
+          aria-label="Close without saving"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
         </button>
-        <button type="button" className="btn-danger-ghost" onClick={onArchive}>
-          Remove vial
+        <span className="detail-top-title">{isNew ? 'New vial' : 'Edit vial'}</span>
+        <button type="button" className="detail-save" onClick={save}>
+          Save
         </button>
       </div>
 
       <div className="detail-vial-hero">
         <Vial
-          name={peptide.name}
-          doseAmount={peptide.vialMg}
+          name={draft.name}
+          doseAmount={draft.vialMg}
           doseUnit="mg"
           size="lg"
         />
@@ -74,16 +101,16 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
 
       <input
         className="detail-name"
-        value={peptide.name}
+        value={draft.name}
         placeholder="Peptide name"
-        autoFocus={!peptide.name.trim()}
+        autoFocus={!draft.name.trim()}
         onChange={(e) => set('name', e.target.value)}
       />
 
       <SyringeGuide
         units={units}
-        syringeUnits={peptide.syringeUnits ?? 100}
-        accent={peptide.color || '#fe1700'}
+        syringeUnits={draft.syringeUnits ?? 100}
+        accent={draft.color || '#fe1700'}
       />
 
       <div className="detail-section">
@@ -95,7 +122,7 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
               type="number"
               min={0}
               step="any"
-              value={peptide.vialMg}
+              value={draft.vialMg}
               onChange={(e) => set('vialMg', Number(e.target.value))}
             />
           </label>
@@ -105,7 +132,7 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
               type="number"
               min={0}
               step="any"
-              value={peptide.diluentMl}
+              value={draft.diluentMl}
               onChange={(e) => set('diluentMl', Number(e.target.value))}
             />
           </label>
@@ -121,14 +148,14 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
               type="number"
               min={0}
               step="any"
-              value={peptide.doseAmount}
+              value={draft.doseAmount}
               onChange={(e) => set('doseAmount', Number(e.target.value))}
             />
           </label>
           <label>
             Unit
             <select
-              value={peptide.doseUnit}
+              value={draft.doseUnit}
               onChange={(e) => set('doseUnit', e.target.value as DoseUnit)}
             >
               <option value="mcg">mcg</option>
@@ -143,7 +170,7 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
                 <button
                   key={s.value}
                   type="button"
-                  className={`syringe-chip ${peptide.syringeUnits === s.value ? 'is-on' : ''}`}
+                  className={`syringe-chip ${draft.syringeUnits === s.value ? 'is-on' : ''}`}
                   onClick={() => set('syringeUnits', s.value)}
                 >
                   {s.label}
@@ -153,9 +180,9 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
           </label>
         </div>
         <p className="detail-math muted">
-          {peptide.doseAmount}
-          {peptide.doseUnit}
-          {conc > 0 ? ` · ${Math.round(conc)} mcg/mL` : ''} · {drawUpSummary(peptide)} (
+          {draft.doseAmount}
+          {draft.doseUnit}
+          {conc > 0 ? ` · ${Math.round(conc)} mcg/mL` : ''} · {drawUpSummary(draft)} (
           {formatUnits(units)}u)
         </p>
       </div>
@@ -166,7 +193,7 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
           <label>
             Frequency
             <select
-              value={peptide.frequency}
+              value={draft.frequency}
               onChange={(e) => set('frequency', e.target.value as Frequency)}
             >
               {FREQ.map((f) => (
@@ -180,31 +207,23 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
             Time
             <input
               type="time"
-              value={peptide.timeOfDay}
+              value={draft.timeOfDay}
               onChange={(e) => set('timeOfDay', e.target.value)}
             />
           </label>
           <label className="span-2">
             Injection sites
             <input
-              value={peptide.injectionSites.join(', ')}
+              value={sitesText}
               placeholder="Abdomen, Thigh"
-              onChange={(e) =>
-                set(
-                  'injectionSites',
-                  e.target.value
-                    .split(',')
-                    .map((s) => s.trim())
-                    .filter(Boolean),
-                )
-              }
+              onChange={(e) => setSitesText(e.target.value)}
             />
           </label>
           <label>
             Color
             <input
               type="color"
-              value={peptide.color}
+              value={draft.color}
               onChange={(e) => set('color', e.target.value)}
             />
           </label>
@@ -213,7 +232,7 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
             <input
               type="number"
               min={0}
-              value={peptide.remainingDoses ?? ''}
+              value={draft.remainingDoses ?? ''}
               placeholder="Auto"
               onChange={(e) =>
                 set(
@@ -227,20 +246,25 @@ export function VialDetail({ peptide, onChange, onLog, onArchive, onClose }: Via
             Notes
             <textarea
               rows={2}
-              value={peptide.notes}
+              value={draft.notes}
               onChange={(e) => set('notes', e.target.value)}
             />
           </label>
         </div>
       </div>
 
-      <button
-        type="button"
-        className={`btn-primary btn-wide${loggedFlash ? ' is-success' : ''}`}
-        onClick={handleLog}
-      >
-        {loggedFlash ? 'Logged' : 'Log injection'}
+      <button type="button" className="btn-primary btn-wide" onClick={save}>
+        Save
       </button>
+      {!isNew && (
+        <button
+          type="button"
+          className={`btn-secondary btn-wide${loggedFlash ? ' is-success' : ''}`}
+          onClick={handleLog}
+        >
+          {loggedFlash ? 'Logged' : 'Log injection'}
+        </button>
+      )}
     </aside>
   )
 }

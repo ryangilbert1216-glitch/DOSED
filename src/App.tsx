@@ -122,7 +122,6 @@ export default function App() {
     livePeptides,
     archivedPeptides,
     upsertPeptide,
-    archivePeptide,
     restorePeptide,
     logDose,
     undoDoseLog,
@@ -134,6 +133,7 @@ export default function App() {
     createProtocol,
     updateProtocol,
     deleteProtocol,
+    deletePeptide,
     clearTrackerData,
     toggleVialInProtocol,
   } = useProtocolStore({ userId: auth.userId, cloud })
@@ -146,6 +146,7 @@ export default function App() {
   const [draftReminders, setDraftReminders] = useState(true)
   const [mainKey, setMainKey] = useState(0)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [unsavedVialId, setUnsavedVialId] = useState<string | null>(null)
   const [authBusy, setAuthBusy] = useState(false)
   const [flowReady, setFlowReady] = useState(false)
 
@@ -310,8 +311,10 @@ export default function App() {
   )
 
   const handleAdd = () => {
+    if (unsavedVialId) deletePeptide(unsavedVialId)
     const blank = createBlankLive()
     upsertPeptide(blank)
+    setUnsavedVialId(blank.id)
     setSelectedId(blank.id)
     setTab('fridge')
   }
@@ -344,6 +347,11 @@ export default function App() {
 
   const goTab = (next: Tab) => {
     if (next === tab) return
+    if (unsavedVialId && next !== 'fridge') {
+      deletePeptide(unsavedVialId)
+      setUnsavedVialId(null)
+      setSelectedId(null)
+    }
     setMainKey((k) => k + 1)
     setTab(next)
   }
@@ -542,17 +550,30 @@ export default function App() {
                 onUpdatePeptide={upsertPeptide}
                 onCreateVial={handleCreateVial}
                 onRestore={restorePeptide}
+                onDelete={(id) => {
+                  deletePeptide(id)
+                  if (selectedId === id) setSelectedId(null)
+                  if (unsavedVialId === id) setUnsavedVialId(null)
+                }}
               />
               {selected && (
                 <VialDetail
+                  key={selected.id}
                   peptide={selected}
-                  onChange={upsertPeptide}
-                  onLog={() => handleLog()}
-                  onArchive={() => {
-                    archivePeptide(selected.id)
+                  isNew={selected.id === unsavedVialId}
+                  onSave={(next) => {
+                    upsertPeptide(next)
+                    setUnsavedVialId(null)
                     setSelectedId(null)
                   }}
-                  onClose={() => setSelectedId(null)}
+                  onCancel={() => {
+                    if (unsavedVialId && selected.id === unsavedVialId) {
+                      deletePeptide(selected.id)
+                    }
+                    setUnsavedVialId(null)
+                    setSelectedId(null)
+                  }}
+                  onLog={() => handleLog()}
                 />
               )}
             </div>

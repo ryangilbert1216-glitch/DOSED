@@ -1434,6 +1434,7 @@ html.standalone .app-shell {
 }
 
 .fd-card {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1464,10 +1465,58 @@ html.standalone .app-shell {
   grid-template-columns: auto 1fr auto;
   gap: 0.65rem;
   align-items: center;
-  padding: 0.65rem 0.75rem;
+  padding: 0.65rem 4.6rem 0.65rem 0.75rem;
   text-align: left;
   color: var(--ink);
   transition: background 140ms ease;
+}
+
+.fd-card.is-editing .fd-card-main {
+  padding-right: 6.4rem;
+}
+
+.fd-card-corner {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.fd-card-edit {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: var(--track-caption);
+  padding: 0.2rem 0.15rem;
+}
+
+.fd-card.is-editing .fd-card-edit {
+  color: var(--ink);
+}
+
+.fd-card-trash {
+  appearance: none;
+  width: 1.85rem;
+  height: 1.85rem;
+  border: none;
+  border-radius: 8px;
+  background: rgba(196, 55, 26, 0.12);
+  color: var(--danger);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.fd-card-trash svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
 }
 
 .fd-card-main:active {
@@ -2513,9 +2562,48 @@ html.standalone .app-shell {
 }
 
 .detail-top {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2.4rem 1fr auto;
+  align-items: center;
   gap: 0.5rem;
+}
+
+.detail-close {
+  appearance: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.detail-close svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
+}
+
+.detail-top-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: var(--track-title);
+  text-align: center;
+}
+
+.detail-save {
+  appearance: none;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: 999px;
+  min-height: 2.2rem;
+  padding: 0 0.95rem;
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .detail-name {

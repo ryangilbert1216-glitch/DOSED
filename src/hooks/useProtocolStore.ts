@@ -3,6 +3,7 @@ import type { AppState, DoseLog, Peptide, Protocol } from '../types'
 import {
   clearTrackerDataCloud,
   deleteLogCloud,
+  deletePeptideCloud,
   deleteProtocolCloud,
   ensureProfile,
   fetchUserState,
@@ -314,6 +315,34 @@ export function useProtocolStore(opts?: {
     [cloud],
   )
 
+  const deletePeptide = useCallback(
+    (peptideId: string) => {
+      setState((s) => {
+        const protocols = s.protocols.map((p) =>
+          p.peptideIds.includes(peptideId)
+            ? { ...p, peptideIds: p.peptideIds.filter((id) => id !== peptideId) }
+            : p,
+        )
+        const uid = userIdRef.current
+        if (cloud && uid) {
+          void deletePeptideCloud(peptideId)
+          for (const next of protocols) {
+            const prev = s.protocols.find((p) => p.id === next.id)
+            if (prev && prev.peptideIds.includes(peptideId)) {
+              void upsertProtocolCloud(uid, next)
+            }
+          }
+        }
+        return {
+          ...s,
+          peptides: s.peptides.filter((p) => p.id !== peptideId),
+          protocols,
+        }
+      })
+    },
+    [cloud],
+  )
+
   const deleteProtocol = useCallback(
     (protocolId: string) => {
       setState((s) => ({
@@ -379,6 +408,7 @@ export function useProtocolStore(opts?: {
     createProtocol,
     updateProtocol,
     deleteProtocol,
+    deletePeptide,
     clearTrackerData,
     toggleVialInProtocol,
   }

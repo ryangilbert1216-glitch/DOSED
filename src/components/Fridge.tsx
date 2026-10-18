@@ -33,6 +33,7 @@ interface FridgeProps {
   onUpdatePeptide: (p: Peptide) => void
   onCreateVial: (name: string) => Peptide
   onRestore: (id: string) => void
+  onDelete: (id: string) => void
 }
 
 export function Fridge({
@@ -50,6 +51,7 @@ export function Fridge({
   onUpdatePeptide,
   onCreateVial,
   onRestore,
+  onDelete,
 }: FridgeProps) {
   const [dashTab, setDashTab] = useState<DashTab>('home')
   const [listFilter, setListFilter] = useState<ListFilter>('active')
@@ -58,6 +60,7 @@ export function Fridge({
   const [cycleIndex, setCycleIndex] = useState(0)
   const [toolPanel, setToolPanel] = useState<ToolPanel>('none')
   const [packSyringe, setPackSyringe] = useState<30 | 50 | 100>(100)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const pillsRef = useRef<HTMLElement>(null)
   const pillBtnRefs = useRef<Partial<Record<DashTab, HTMLButtonElement | null>>>({})
   const [pillThumb, setPillThumb] = useState({ left: 0, width: 0, ready: false })
@@ -434,9 +437,41 @@ export function Fridge({
               return (
                 <article
                   key={p.id}
-                  className={`fd-card ${selectedId === p.id ? 'is-selected' : ''}`}
+                  className={`fd-card ${selectedId === p.id ? 'is-selected' : ''}${editingId === p.id ? ' is-editing' : ''}`}
                   role="listitem"
                 >
+                  {p.status !== 'archived' && (
+                    <div className="fd-card-corner">
+                      <button
+                        type="button"
+                        className="fd-card-edit"
+                        onClick={() => setEditingId((cur) => (cur === p.id ? null : p.id))}
+                      >
+                        {editingId === p.id ? 'Done' : 'Edit'}
+                      </button>
+                      {editingId === p.id && (
+                        <button
+                          type="button"
+                          className="fd-card-trash"
+                          aria-label={`Delete ${p.name || 'vial'}`}
+                          onClick={() => {
+                            onDelete(p.id)
+                            setEditingId(null)
+                          }}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                            <path
+                              d="M4 7h16M9 7V5h6v2M8 7l.8 12h6.4L16 7"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <button type="button" className="fd-card-main" onClick={() => onSelect(p.id)}>
                     <div className="fd-card-vial">
                       <Vial name={p.name} doseAmount={p.vialMg} doseUnit="mg" size="md" />
